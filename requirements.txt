@@ -1,0 +1,13 @@
+numpy
+pandas
+scikit-learn
+matplotlib
+joblib
+pyyaml
+requests
+beautifulsoup4
+xgboost
+lightgbm
+imbalanced-learn
+jcamp
+rdkit-pypi
