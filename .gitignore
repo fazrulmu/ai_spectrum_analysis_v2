@@ -10,4 +10,5 @@ results
 
 # Python bytecode
 __pycache__/
+*.pyc__pycache__/
 *.pyc
