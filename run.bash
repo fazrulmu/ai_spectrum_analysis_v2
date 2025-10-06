@@ -16,3 +16,25 @@ python main.py predict --ir samples_to_predict/50-78-2_IR.jdx --uv samples_to_pr
 
 # Prediksi IR saja
 python main.py predict --ir /path/ke/file.jdx
+
+
+
+
+
+baru
+
+python main.py data_processing.py
+
+python main.py train.py
+
+python main.py prediction.py
+
+
+python main.py data_analyzer/analyze_performance.py
+
+python main.py debug_fuction/debug_pipeline.py
+
+
+
+python -m src.debug_fuction.debug_pipeline
+

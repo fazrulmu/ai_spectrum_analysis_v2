@@ -2,7 +2,7 @@
 
 import numpy as np
 from scipy.signal import find_peaks
-
+import os
 # =================================================================
 # == ATURAN UNTUK SPEKTROSKOPI INFRAMERAH (IR)                    ==
 # =================================================================

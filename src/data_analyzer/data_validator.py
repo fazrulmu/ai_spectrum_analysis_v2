@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import ast # Untuk mengubah string list menjadi list sungguhan
-
+import os
 # Muat database yang dihasilkan oleh script analisis
 df = pd.read_csv("exploration_database.csv")
 

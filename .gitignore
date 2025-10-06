@@ -1,4 +1,13 @@
 reports
-data
+database
 .vscode
 saved_models
+samples_to_predict
+__pycache__
+exploration_database.csv
+src/__pycache__
+results
+
+# Python bytecode
+__pycache__/
+*.pyc

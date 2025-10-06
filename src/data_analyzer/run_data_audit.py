@@ -1,4 +1,4 @@
-# run_data_audit.py
+# src/data_analyzer/run_data_audit.py
 
 import os
 import yaml
@@ -9,22 +9,21 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from scipy.signal import find_peaks
-import matplotlib.pyplot as plt
-import seaborn as sns
+import argparse
 
-# Impor fungsi dari proyek Anda
-from src.data_processing import parse_jdx, preprocess_spectrum
+# Impor relatif dari dalam paket 'src'
+from ..data_processing import parse_jdx, preprocess_spectrum
+from ..auto_labeler import SPECTRAL_RULES, UV_SPECTRAL_RULES
 
-def audit_dataset(config):
+def audit_dataset(config, output_dir):
     """
     Menjalankan audit komprehensif pada seluruh dataset JDX.
-    Menganalisis properti puncak IR & UV, dan mengidentifikasi file dengan baseline buruk.
     """
     paths = config['paths']
     
     # Inisialisasi kolektor data
-    ir_prominences, ir_heights = [], []
-    uv_intensities, uv_peak_counts = [], []
+    ir_peak_data = []
+    uv_peak_data = []
     bad_baseline_files = []
 
     all_jdx_files = glob.glob(os.path.join(paths['raw_data_dir'], '**', '*.jdx'), recursive=True)
@@ -44,80 +43,84 @@ def audit_dataset(config):
             if spectrum_type == 'ir' and 'transmittance' in metadata.get('yunits', '').lower():
                 y_abs = 2 - np.log10(np.clip(raw_data['y'], 1e-9, 100))
                 baseline_metric = np.min(y_abs)
-                # Tandai file jika baseline minimumnya jauh di atas nol
                 if baseline_metric > 0.15: # Threshold ini bisa disesuaikan
                     bad_baseline_files.append({
                         "file": os.path.basename(file_path),
-                        "baseline_min_abs": baseline_metric,
+                        "baseline_min_abs": round(baseline_metric, 3),
                         "resolution": metadata.get('resolution', 'N/A')
                     })
 
             # --- Lanjutkan ke Analisis Puncak ---
-            processed_df = preprocess_spectrum(raw_data, config, spectrum_type, normalize=True)
+            normalize_for_uv = False if spectrum_type == 'uv' else True
+            processed_df = preprocess_spectrum(raw_data, config, spectrum_type, normalize=normalize_for_uv)
             if processed_df is None: continue
 
             y_col = 'absorbance' if spectrum_type == 'ir' else 'log_epsilon'
+            x_col = 'wavenumber' if spectrum_type == 'ir' else 'wavelength'
             y_vals = processed_df[y_col].values
-            if np.all(np.isnan(y_vals)) or len(y_vals) == 0: continue
-
-            peaks, props = find_peaks(y_vals, prominence=0.01, height=0.01) # Gunakan threshold rendah untuk menangkap semua
+            x_vals = processed_df[x_col].values
+            y_vals_norm = (y_vals - y_vals.min()) / (y_vals.max() - y_vals.min() + 1e-9)
+            
+            peaks, props = find_peaks(y_vals_norm, prominence=0.01, height=0.01, width=1)
             
             if peaks.size > 0:
-                if spectrum_type == 'ir':
-                    ir_prominences.extend(props['prominences'])
-                    ir_heights.extend(props['peak_heights'])
-                else: # uv
-                    uv_peak_counts.append(len(peaks))
-                    uv_intensities.extend(props['peak_heights']) # Untuk UV, height = log_epsilon
+                rules = SPECTRAL_RULES if spectrum_type == 'ir' else UV_SPECTRAL_RULES
+                for i, peak_idx in enumerate(peaks):
+                    peak_location = x_vals[peak_idx]
+                    assigned_label = 'unassigned'
+                    for rule in rules:
+                        if rule['range'][0] <= peak_location <= rule['range'][1]:
+                            assigned_label = rule['group']; break
+                    
+                    peak_info = {
+                        'group': assigned_label,
+                        'peak_location': peak_location,
+                        'peak_height': props['peak_heights'][i],
+                        'peak_prominence': props['prominences'][i],
+                        'peak_width': props['widths'][i],
+                        'actual_intensity': y_vals[peak_idx],
+                        'file_path': os.path.basename(file_path)
+                    }
+                    if spectrum_type == 'ir': ir_peak_data.append(peak_info)
+                    else: uv_peak_data.append(peak_info)
         except Exception:
             continue
             
-    return {
-        "ir_prominences": np.array(ir_prominences),
-        "ir_heights": np.array(ir_heights),
-        "uv_peak_counts": np.array(uv_peak_counts),
-        "uv_intensities": np.array(uv_intensities),
-        "bad_baseline_files": bad_baseline_files
-    }
+    # Simpan hasil ke file CSV
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 
-def generate_audit_report(audit_results):
-    """Mencetak laporan hasil audit ke konsol."""
-    print("\n" + "="*60)
-    print(" LAPORAN AUDIT KUALITAS DATASET SPEKTRAL")
-    print("="*60)
+    if ir_peak_data:
+        df_ir = pd.DataFrame(ir_peak_data)
+        output_path = os.path.join(output_dir, f"ir_peak_properties_{timestamp}.csv")
+        df_ir.to_csv(output_path, index=False)
+        print(f"\n✅ Analisis IR selesai. Data disimpan di: {output_path}")
 
-    # Laporan IR
-    if audit_results["ir_prominences"].size > 0:
-        print("\n--- Analisis Puncak IR ---")
-        print(">> Statistik Prominence:")
-        print(pd.Series(audit_results["ir_prominences"]).describe(percentiles=[.25, .5, .75, .95]))
-        print("\n>> Statistik Height (Normalized):")
-        print(pd.Series(audit_results["ir_heights"]).describe(percentiles=[.25, .5, .75, .95, .99]))
+    if uv_peak_data:
+        df_uv = pd.DataFrame(uv_peak_data)
+        output_path = os.path.join(output_dir, f"uv_peak_properties_{timestamp}.csv")
+        df_uv.to_csv(output_path, index=False)
+        print(f"\n✅ Analisis UV selesai. Data disimpan di: {output_path}")
+
+    if bad_baseline_files:
+        df_baseline = pd.DataFrame(bad_baseline_files)
+        output_path = os.path.join(output_dir, f"bad_baseline_files_{timestamp}.csv")
+        df_baseline.to_csv(output_path, index=False)
+        print(f"\n✅ Analisis baseline selesai. Data disimpan di: {output_path}")
+
+def main(config_path="main_config.yaml", output_dir="src/data_analyzer/audit_results"):
+    print("--- 🔬 Memulai Modul Audit Kualitas Data ---")
+    try:
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+    except FileNotFoundError:
+        print(f"❌ Error: File konfigurasi '{config_path}' tidak ditemukan.")
+        return
     
-    # Laporan UV
-    if audit_results["uv_peak_counts"].size > 0:
-        print("\n\n--- Analisis Puncak UV-Vis ---")
-        print(">> Statistik Jumlah Puncak per Spektrum:")
-        print(pd.Series(audit_results["uv_peak_counts"]).describe())
-        print("\n>> Statistik Intensitas Puncak (log ε):")
-        print(pd.Series(audit_results["uv_intensities"]).describe(percentiles=[.25, .5, .75, .95]))
+    os.makedirs(output_dir, exist_ok=True)
+    audit_dataset(config, output_dir)
 
-    # Laporan Baseline Bermasalah
-    bad_baselines = audit_results["bad_baseline_files"]
-    if bad_baselines:
-        print("\n\n--- Analisis Lonjakan Baseline (IR) ---")
-        print(f"Ditemukan {len(bad_baselines)} file IR dengan potensi baseline yang terangkat/bermasalah:")
-        df_baseline = pd.DataFrame(bad_baselines)
-        print(df_baseline.to_string(index=False))
-    
-    print("\n" + "="*60)
-    print(" Audit Selesai.")
-    print("="*60)
-
-
-if __name__ == "__main__":
-    with open('main_config.yaml', 'r') as f:
-        config = yaml.safe_load(f)
-        
-    audit_results = audit_dataset(config)
-    generate_audit_report(audit_results)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description="Jalankan audit kualitas dataset spektral.")
+    parser.add_argument('--config', default='main_config.yaml', help='Path ke file konfigurasi.')
+    args = parser.parse_args()
+    main(config_path=args.config)

@@ -7,6 +7,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import os
 
 # Impor semua fungsi yang relevan
 from src.data_processing import parse_jdx, baseline_als

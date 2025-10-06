@@ -9,8 +9,8 @@ from sklearn.multioutput import MultiOutputClassifier
 from sklearn.metrics import classification_report
 
 # Impor fungsi dari src
-from src.data_processing import prepare_ir_dataset, prepare_uv_dataset
-from src.modeling import train_base_model_cv
+from data_processing import prepare_ir_dataset, prepare_uv_dataset
+from modeling import train_base_model_cv
 
 def _train_base_stage(config, spectrum_type):
     # ... (logika ini sama dengan fungsi train_base_stage dari jawaban sebelumnya)

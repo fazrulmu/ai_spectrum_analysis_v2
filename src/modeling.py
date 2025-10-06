@@ -11,10 +11,9 @@ from sklearn.model_selection import GroupShuffleSplit,GroupKFold
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from keras import backend as K
 from keras.saving import register_keras_serializable
-from src.model_architecture import build_cnn_model
 
-from src.data_processing import augment_spectrum
-
+from .model_architecture import build_cnn_model
+from .data_processing import augment_spectrum
 # =====================================================
 # 🔹 Custom Metrics
 # =====================================================

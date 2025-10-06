@@ -1,7 +1,7 @@
 # src/model_architecture.py
 import tensorflow as tf
 from tensorflow.keras import layers, Model, Input
-
+import os
 def build_cnn_model(spec_shape, meta_shape, num_classes, config):
     # Input spektrum (1D CNN)
     spec_input = Input(shape=spec_shape, name="spectrum_input")

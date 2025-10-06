@@ -15,18 +15,27 @@ from scipy.sparse.linalg import spsolve
 from scipy import sparse
 from scipy.ndimage import grey_opening
 from scipy.signal import find_peaks, peak_widths
-
+import yaml
 from scipy import sparse
 from scipy.sparse.linalg import spsolve
 
 
 
-from src.auto_labeler import autogenerate_functional_groups, autogenerate_chromophores
 
 
 from scipy.spatial import ConvexHull
 
+from auto_labeler import autogenerate_functional_groups, autogenerate_chromophores 
 
+def load_processed_spectrum(file_path):
+    """
+    Memuat data spektrum yang sudah diproses dari file CSV.
+    Fungsi inilah yang dicari oleh visualization.py.
+    """
+    if not os.path.exists(file_path):
+        print(f"Error: File data yang diproses tidak ditemukan di {file_path}")
+        return None
+    return pd.read_csv(file_path)
 
 def smooth_signal(y, window_length=11, polyorder=3):
     """
@@ -453,3 +462,53 @@ def prepare_uv_dataset(config):
 
     X_spec = np.array(spectra).reshape(len(spectra), -1, 1)
     return X_spec, X_meta, y, np.array(groups)
+
+
+
+# =================================================================
+# == BLOK MAIN UNTUK ORCHESTRATOR                              ==
+# =================================================================
+def main(output_dir=".", config_path="main_config.yaml"):
+    """
+    Fungsi utama untuk menjalankan pemrosesan data IR dan UV.
+    """
+    print("--- Menjalankan Modul Pemrosesan Data ---")
+    
+    # Memuat konfigurasi
+
+    try:
+        with open(config_path, 'r') as f:
+            config = yaml.safe_load(f)
+    except FileNotFoundError:
+        print(f"Error: File konfigurasi '{config_path}' tidak ditemukan.")
+        return
+
+    # Menentukan direktori output spesifik untuk setiap dataset
+    output_dir_ir = os.path.join(output_dir, "ir_dataset")
+    output_dir_uv = os.path.join(output_dir, "uv_dataset")
+    os.makedirs(output_dir_ir, exist_ok=True)
+    os.makedirs(output_dir_uv, exist_ok=True)
+
+    # Memproses dataset IR
+    try:
+        print("\nMemulai pemrosesan dataset IR...")
+        prepare_ir_dataset(config, output_dir=output_dir_ir)
+    except Exception as e:
+        print(f"Gagal memproses dataset IR: {e}")
+
+    # Memproses dataset UV
+    try:
+        print("\nMemulai pemrosesan dataset UV-Vis...")
+        prepare_uv_dataset(config, output_dir=output_dir_uv)
+    except Exception as e:
+        print(f"Gagal memproses dataset UV-Vis: {e}")
+        
+    print("--- Modul Pemrosesan Data Selesai ---")
+
+if __name__ == '__main__':
+    """
+    Blok ini akan dieksekusi jika file dijalankan secara langsung.
+    """
+    default_folder = "default_output/data_processing"
+    print(f"Menjalankan {__file__} secara mandiri untuk pengujian...")
+    main(output_dir=default_folder)
