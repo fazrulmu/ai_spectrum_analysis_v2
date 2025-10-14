@@ -4,12 +4,15 @@
 
 # --- 1. Manajemen Path ---
 paths:
-  raw_data_dir: "database/raw_spectrum_jdx"
+  raw_data_dir: "data/raw/nist_jdx" 
   processed_data_path: "data/processed/spectra_processed_data.pkl" # Data setelah preprocessing
   labels_path: "data/labels/auto_labels.csv"
+  cas_list_json: "data/external/cas_list.json"
   saved_models_dir: "saved_models/"
   reports_dir: "reports/"
   figures_dir: "reports/figures/"
+  statistics_dir: "reports/statistics/"
+  labels_audit_dir: "reports/data_audit"
 
 # --- 2. Parameter Pra-pemrosesan ---
 preprocessing:

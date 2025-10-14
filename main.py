@@ -1,16 +1,23 @@
-# main.py (Versi Final dengan perintah 'visualize')
-
 import argparse
 import yaml
 import os
+import sys
+from pathlib import Path
+
+# --- Menambahkan 'src' ke path agar semua impor absolut berfungsi ---
+# Ini adalah langkah kunci untuk mengatasi semua ModuleNotFoundError
+SRC_PATH = Path(__file__).parent / 'src'
+if str(SRC_PATH) not in sys.path:
+    sys.path.insert(0, str(SRC_PATH))
 
 # --- Impor semua fungsi utama dari skrip-skrip lain ---
-from data_analyzer.smart_downloader import main as run_downloader
-from src.scripts.run_training import execute_training
-from src.scripts.run_prediction import execute_prediction
+from src.data_analyzer.smart_downloader import main as run_downloader
+from src.run_training import execute_training
+from src.run_prediction import execute_prediction
 from src.data_analyzer.generate_rule_statistics import main as run_rule_analysis
-# --- TAMBAHKAN IMPOR BARU DI SINI ---
-from src.label_and_visualize import main as run_visualization
+from label_and_visualize import main as run_visualization
+# --- TAMBAHKAN IMPOR UNTUK FUNGSI AUDIT ---
+from data_analyzer.run_data_audit import main as run_data_audit
 
 def main():
     """
@@ -23,7 +30,7 @@ def main():
     subparsers = parser.add_subparsers(dest="command", required=True, help="Pilih perintah yang akan dijalankan")
 
     # --- Perintah 'download' ---
-    parser_download = subparsers.add_parser("download", help="Menjalankan modul Smart Downloader.")
+    _ = subparsers.add_parser("download", help="Menjalankan modul Smart Downloader.")
     
     # --- Perintah 'train' ---
     parser_train = subparsers.add_parser("train", help="Menjalankan alur kerja pelatihan model.")
@@ -36,11 +43,16 @@ def main():
     parser_predict.add_argument("--uv", type=str, help="Path ke file spektrum UV-Vis (.jdx).")
     
     # --- Perintah 'analyze' ---
-    parser_analyze = subparsers.add_parser("analyze", help="Menjalankan analisis statistik pada aturan spektral.")
+    _ = subparsers.add_parser("analyze", help="Menjalankan analisis statistik pada aturan spektral.")
 
-    # --- PERINTAH BARU 'visualize' ---
+    # --- Perintah 'visualize' ---
     parser_visualize = subparsers.add_parser("visualize", help="Melabeli & memvisualisasikan puncak pada satu file spektrum.")
     parser_visualize.add_argument("--file", type=str, required=True, help="Path ke file spektrum IR (.jdx) yang akan dianalisis.")
+
+    # --- PERINTAH BARU 'audit' DENGAN OPSI ---
+    parser_audit = subparsers.add_parser("audit", help="Menjalankan audit kualitas data canggih.")
+    parser_audit.add_argument('--limit', type=int, default=None, help='(Opsional) Batasi jumlah file yang akan diproses.')
+    parser_audit.add_argument('--source', default=None, help='(Opsional) Path ke direktori spesifik yang berisi file JDX.')
 
     args = parser.parse_args()
     
@@ -73,7 +85,7 @@ def main():
         
     elif args.command == "analyze":
         print("--- Memanggil Modul Analisis Statistik ---")
-        output_dir = os.path.join(config['paths']['reports_dir'], 'statistics')
+        output_dir = config['paths']['statistics_dir']
         os.makedirs(output_dir, exist_ok=True)
         run_rule_analysis(output_dir=output_dir, config_path=config_path)
         
@@ -82,6 +94,13 @@ def main():
         output_dir = os.path.join(config['paths']['figures_dir'], 'labeled_spectra')
         os.makedirs(output_dir, exist_ok=True)
         run_visualization(output_dir=output_dir, config=config, target_file=args.file)
+
+    elif args.command == "audit":
+        print("--- 🔬 Memanggil Modul Audit Kualitas Data ---")
+        output_dir = os.path.join(config['paths']['reports_dir'], 'data_audit')
+        os.makedirs(output_dir, exist_ok=True)
+        # Teruskan argumen 'limit' dan 'source' ke fungsi audit
+        run_data_audit(config_path=config_path, output_dir=output_dir, limit=args.limit, source=args.source)
 
 if __name__ == "__main__":
     main()

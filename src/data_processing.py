@@ -19,13 +19,227 @@ import yaml
 from scipy import sparse
 from scipy.sparse.linalg import spsolve
 
-
+import datetime
 
 
 
 from scipy.spatial import ConvexHull
 
-from auto_labeler import autogenerate_functional_groups, autogenerate_chromophores 
+from src.auto_labeler import autogenerate_functional_groups, autogenerate_chromophores 
+
+# Paste this entire function at the end of src/data_processing.py
+
+
+
+
+
+    # (lanjutan kode robust parser yang sebelumnya kamu pasang)
+    
+def load_and_standardize_spectrum(
+    file_path,
+    target_resolution: float = 2.0,
+    x_range: tuple = (4000.0, 400.0),
+    baseline_correction: bool = True,
+    normalize_intensity: bool = True,
+    smoothing: bool = True
+):
+    """
+    Pipeline penuh untuk membaca, menyeragamkan, dan menstandarkan spektrum IR/UV.
+
+    Parameters
+    ----------
+    file_path : str
+        Path ke file .jdx atau DataFrame.
+    target_resolution : float
+        Resolusi target X (misal 2 cm⁻¹ untuk IR).
+    x_range : tuple
+        Rentang X yang diinginkan (default: 4000–400 cm⁻¹).
+    baseline_correction : bool
+        Jika True, kurangi baseline (min intensity).
+    normalize_intensity : bool
+        Jika True, skala intensitas ke 0–1.
+    smoothing : bool
+        Jika True, lakukan smoothing ringan (Savitzky–Golay).
+
+    Returns
+    -------
+    dict
+        {
+            "meta": {info file, tanggal, dsb},
+            "df": DataFrame uniform (x, y),
+            "numpy": array [x, y],
+            "params": konfigurasi pemrosesan
+        }
+    """
+
+    # --- Coba parse file
+    try:
+        from jcamp import jcamp_readfile
+        jdx = jcamp_readfile(file_path)
+        x = np.array(jdx.get("x", jdx.get("wavenumber")))
+        y = np.array(jdx.get("y", jdx.get("transmittance", jdx.get("absorbance"))))
+    except Exception as e:
+        raise RuntimeError(f"Gagal membaca file {file_path}: {e}")
+
+    if x is None or y is None:
+        raise ValueError(f"File {file_path} tidak berisi data X/Y valid")
+
+    # --- Pastikan urutan X menurun (IR biasanya 4000 → 400)
+    if x[0] < x[-1]:
+        x = x[::-1]
+        y = y[::-1]
+
+    # --- Buat grid seragam
+    start, end = x_range
+    x_uniform = np.arange(start, end - target_resolution, -target_resolution)
+
+    # --- Interpolasi (cubic)
+    f = interp1d(x, y, kind="cubic", fill_value="extrapolate")
+    y_uniform = f(x_uniform)
+
+    # --- Baseline correction (optional)
+    if baseline_correction:
+        y_uniform = y_uniform - np.min(y_uniform)
+
+    # --- Normalisasi intensitas (optional)
+    if normalize_intensity:
+        y_uniform = y_uniform / np.max(np.abs(y_uniform))
+
+    # --- Smoothing ringan (opsional)
+    if smoothing:
+        from scipy.signal import savgol_filter
+        try:
+            y_uniform = savgol_filter(y_uniform, window_length=11, polyorder=3)
+        except Exception:
+            pass
+
+    df_uniform = pd.DataFrame({"x": x_uniform, "y": y_uniform})
+
+    return {
+        "meta": {
+            "source_file": os.path.basename(file_path),
+            "created_at": datetime.now().isoformat(),
+            "resolution_target": target_resolution,
+            "range": x_range,
+        },
+        "df": df_uniform,
+        "numpy": np.column_stack((x_uniform, y_uniform)),
+        "params": {
+            "baseline_correction": baseline_correction,
+            "normalize_intensity": normalize_intensity,
+            "smoothing": smoothing,
+        },
+    }
+
+
+# Ganti fungsi yang ada di src/data_processing.py dengan ini
+
+def standardize_for_pattern_recognition(raw_data):
+    """
+    Menyiapkan spektrum IR untuk VISUALISASI dan LABELING MANUAL.
+    TIDAK melakukan resampling.
+    Output selalu Transmitans (puncak ke bawah) pada grid data asli.
+    """
+    if (
+        raw_data is None or
+        'x' not in raw_data or
+        'y' not in raw_data or
+        len(raw_data['x']) == 0 or
+        len(raw_data['y']) == 0
+    ):
+        return None
+
+    x, y, metadata = raw_data['x'], raw_data['y'], raw_data['metadata']
+    df = pd.DataFrame({'x': x, 'y': y}).dropna()
+    df_sorted = df.groupby('x', as_index=False).mean().sort_values(by='x').reset_index(drop=True)
+    x_clean, y_clean = df_sorted['x'].values, df_sorted['y'].values
+
+    # --- Logika Konversi ke Transmitans ---
+    y_units = metadata.get('yunits', '').lower()
+    if 'transmittance' in y_units:
+        # Jika sudah transmittance, normalisasi ke rentang 0-1
+        y_as_transmittance = y_clean / 100.0
+    else: 
+        # Jika absorbans, konversi ke transmittance
+        y_as_transmittance = 10**(-y_clean)
+        
+    # Pastikan rentang data valid (0 hingga 1) dan lakukan normalisasi sederhana
+    y_as_transmittance = np.clip(y_as_transmittance, 0, 1)
+
+    # --- Logika Standardisasi Sumbu-X ---
+    x_units = metadata.get('xunits', '').lower()
+    if 'micrometer' in x_units:
+        x_clean[x_clean == 0] = 1e-9
+        x_standard = 10000 / x_clean
+    else:
+        x_standard = x_clean
+        
+    # Pastikan sumbu-x selalu menurun sesuai konvensi IR
+    if x_standard[0] < x_standard[-1]:
+        x_final, y_final = x_standard[::-1], y_as_transmittance[::-1]
+    else:
+        x_final, y_final = x_standard, y_as_transmittance
+
+    # --- PERBAIKAN UTAMA: Kembalikan dictionary dengan DataFrame yang benar ---
+    full_spectrum_df = pd.DataFrame({'wavenumber': x_final, 'transmittance': y_final})
+    
+    # Bagian lain dari fungsi ini (overtone, fingerprint) bisa ditambahkan di sini jika perlu
+    # Untuk saat ini, kita hanya butuh spektrum penuh
+    return {'full_spectrum': full_spectrum_df}
+def augment_spectrum(spectrum_data, spectrum_type='ir'):
+    """
+    Applies a series of augmentations to a single spectrum to create a new,
+    realistic training example.
+
+    Args:
+        spectrum_data (np.ndarray): A 1D numpy array representing the spectrum's y-values (absorbance/log_epsilon).
+        spectrum_type (str): 'ir' or 'uv'. This allows for different noise levels.
+
+    Returns:
+        np.ndarray: The augmented spectrum data.
+    """
+    augmented_spectrum = spectrum_data.copy()
+
+    # --- 1. Add Random Noise ---
+    # Simulates electronic detector noise. IR spectra are often noisier.
+    if spectrum_type == 'ir':
+        # Higher noise level for IR
+        noise_level = np.random.uniform(0.001, 0.015)
+    else: # uv
+        # Lower noise level for the smoother UV spectra
+        noise_level = np.random.uniform(0.0005, 0.005)
+
+    noise = np.random.normal(0, noise_level, augmented_spectrum.shape)
+    augmented_spectrum += noise
+
+    # --- 2. Baseline Shift ---
+    # Simulates baseline drift during measurement.
+    # We can add a simple vertical shift or a slight tilt.
+    if np.random.rand() < 0.5: # Apply this augmentation 50% of the time
+        baseline_shift = np.random.uniform(-0.05, 0.05)
+        augmented_spectrum += baseline_shift
+    else:
+        # Add a slight tilt to the baseline
+        tilt_factor = np.random.uniform(-0.0001, 0.0001)
+        tilt = tilt_factor * np.arange(len(augmented_spectrum))
+        augmented_spectrum += tilt
+
+    # --- 3. Intensity Scaling ---
+    # Simulates variations in sample concentration or instrument sensitivity.
+    if np.random.rand() < 0.7: # Apply this augmentation 70% of the time
+        scaling_factor = np.random.uniform(0.9, 1.1)
+        augmented_spectrum *= scaling_factor
+        
+    # --- 4. Horizontal (Wavenumber/Wavelength) Shift ---
+    # Simulates slight instrument calibration differences.
+    if np.random.rand() < 0.5: # Apply this augmentation 50% of the time
+        shift_amount = np.random.randint(-3, 4) # Shift by -3, -2, -1, 0, 1, 2, or 3 points
+        augmented_spectrum = np.roll(augmented_spectrum, shift_amount)
+
+    # Ensure data is clipped between 0 and a max value to avoid negative absorbance
+    augmented_spectrum = np.clip(augmented_spectrum, 0, 2.0)
+
+    return augmented_spectrum
 
 def load_processed_spectrum(file_path):
     """
@@ -100,7 +314,6 @@ def choose_baseline_and_correct(x, y_resampled, morph_size=101, poly_order=3):
     # fallback jika morph menghapus terlalu banyak puncak
     if peak_frac < 0.7:
         baseline = hybrid_poly_als_baseline(x, y_resampled, poly_order=poly_order)
-        corrected = np.clip(y_resampled - baseline, 0, None)
         method = "Hybrid Poly+ALS (fallback)"
     else:
         baseline = baseline_morph
@@ -160,17 +373,101 @@ def hybrid_baseline(x, y):
 # =================================================================
 # == PARSER JDX MENGGUNAKAN LIBRARY KHUSUS YANG ANDAL            ==
 # =================================================================
+
+
+
+
+from jcamp import jcamp_readfile
+
 def parse_jdx(file_path):
+    """
+    Membaca file JCAMP-DX (.jdx) dari berbagai sumber (NIST, Sigma, FTIR) dan 
+    mengeluarkan hasil dengan format seragam:
+    { 'x': np.array, 'y': np.array, 'metadata': dict }
+
+    Fungsi ini robust terhadap format berbeda (##XYDATA, ##PEAK TABLE, ##XYPOINTS).
+    """
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File tidak ditemukan: {file_path}")
+
+    def _clean_line(line):
+        # Hilangkan simbol atau pemisah aneh
+        return line.strip().replace(',', ' ').replace(';', ' ').replace('\t', ' ')
+
     try:
-        data = jcamp.jcamp_readfile(file_path)
-        metadata = {k.lower().replace(' ', '_').replace('/','_'): v for k, v in data.items() if not isinstance(v, (list, np.ndarray))}
-        x_vals = np.array(data.get('x', []), dtype=float)
-        y_vals = np.array(data.get('y', []), dtype=float)
-        if x_vals.size == 0 or y_vals.size == 0 or x_vals.size != y_vals.size:
-            return None
-        return {"x": x_vals, "y": y_vals, "metadata": metadata}
+        # Coba baca dengan library jcamp
+        jdx = jcamp_readfile(file_path)
+        x = np.array(jdx.get("x", jdx.get("wavenumber", [])), dtype=float)
+        y = np.array(jdx.get("y", jdx.get("transmittance", jdx.get("absorbance", []))), dtype=float)
+        metadata = {
+            "title": jdx.get("title", os.path.basename(file_path)),
+            "xunits": jdx.get("xunits", "1/cm"),
+            "yunits": jdx.get("yunits", "transmittance"),
+            "data_type": jdx.get("data type", "unknown"),
+            "xfactor": float(jdx.get("xfactor", 1.0)),
+            "yfactor": float(jdx.get("yfactor", 1.0)),
+        }
+        # Apply XFACTOR and YFACTOR if present
+        x = x * metadata["xfactor"]
+        y = y * metadata["yfactor"]
+        if len(x) > 0 and len(y) > 0:
+            return {"x": x, "y": y, "metadata": metadata}
+
     except Exception:
-        return None
+        # Jika gagal, lakukan parsing manual
+        x, y = [], []
+        metadata = {}
+        with open(file_path, "r", errors="ignore") as f:
+            lines = f.readlines()
+
+        data_started = False
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+
+            if line.startswith("##"):
+                # Metadata JCAMP
+                parts = line.split("=", 1)
+                if len(parts) == 2:
+                    key = parts[0].strip(" #").lower()
+                    val = parts[1].strip()
+                    metadata[key] = val
+                if "##xydata" in line.lower() or "##peak table" in line.lower():
+                    data_started = True
+                continue
+
+            # Ambil data XY jika sudah di bagian data
+            if data_started:
+                cleaned = _clean_line(line)
+                nums = re.findall(r"[-+]?\d*\.?\d+(?:[eE][-+]?\d+)?", cleaned)
+                if len(nums) >= 2:
+                    try:
+                        x.append(float(nums[0]))
+                        y.append(float(nums[1]))
+                    except:
+                        pass
+
+        x, y = np.array(x), np.array(y)
+        # Apply XFACTOR and YFACTOR if present in metadata (manual parse)
+        xfactor = float(metadata.get("xfactor", 1.0))
+        yfactor = float(metadata.get("yfactor", 1.0))
+        x = x * xfactor
+        y = y * yfactor
+        if len(x) == 0 or len(y) == 0:
+            raise ValueError("Gagal mem-parse data XY dari file JCAMP")
+
+        # Deteksi unit secara otomatis jika tidak tersedia
+        if "xunits" not in metadata:
+            metadata["xunits"] = "1/cm"
+        if "yunits" not in metadata:
+            metadata["yunits"] = "transmittance" if np.max(y) <= 1.5 else "absorbance"
+
+        metadata["title"] = metadata.get("title", os.path.basename(file_path))
+        metadata["data_type"] = metadata.get("data type", "manual parse")
+
+        return {"x": x, "y": y, "metadata": metadata}
+
 
 # =================================================================
 # == FUNGSI KOREKSI BASELINE (STABIL)                            ==
@@ -219,109 +516,85 @@ def baseline_als(y, lam_range=(1e5, 1e7), p_range=(0.01, 0.1), niter=10):
 # == FUNGSI PREPROCESSING UTAMA DENGAN LOGIKA ADAPTIF YANG BENAR   ==
 # =================================================================
 def preprocess_spectrum(data, config, spectrum_type, normalize=True):
-    # ... (Bagian awal fungsi: parsing, cleaning, unit standardization, dll. tidak berubah)
-    if not data or 'x' not in data or 'y' not in data or len(data['x']) < 20: return None
+    """
+    Menyiapkan spektrum untuk TRAINING.
+    Melakukan konversi ke Absorbans, resampling ke grid standar, dan normalisasi.
+    Output selalu Absorbans (puncak ke atas).
+    """
+    if not data or 'x' not in data or 'y' not in data or len(data['x']) < 20:
+        return None
+
     x, y, metadata = data['x'], data['y'], data['metadata']
     df = pd.DataFrame({'x': x, 'y': y}).dropna()
-    if df.empty or len(df) < 20: return None
-    df_cleaned = df.groupby('x', as_index=False).mean()
-    df_sorted = df_cleaned.sort_values(by='x').reset_index(drop=True)
-    if len(df_sorted) < 20: return None
-    x_clean, y_clean = df_sorted['x'].values, df_sorted['y'].values
-    
-    x_units = metadata.get('xunits', '').lower()
-    y_units = metadata.get('yunits', '').lower()
-    
-    if spectrum_type == 'ir':
-        if 'micrometer' in x_units or 'micron' in x_units:
-            x_clean[x_clean == 0] = 1e-9; x_standard = 10000 / x_clean
-        else: x_standard = x_clean
-        is_transmittance = 'transmittance' in y_units or np.median(y_clean) > 1.1
-        if is_transmittance: y_standard = 2 - np.log10(np.clip(y_clean, 1e-9, 100))
-        else: y_standard = y_clean
-        if x_standard[0] < x_standard[-1]: x_final, y_final = x_standard[::-1], y_standard[::-1]
-        else: x_final, y_final = x_standard, y_standard
-        grid_config = config['preprocessing']['ir_grid']
-        output_col_name = 'absorbance'; x_col_name = 'wavenumber'
-    
-    elif spectrum_type == 'uv':
-        is_transmittance_uv = 'transmittance' in y_units or np.median(y_clean) > 1.1
-        if is_transmittance_uv: y_final = 2 - np.log10(np.clip(y_clean, 1e-9, 100))
-        elif 'absorbance' in y_units: y_final = y_clean
-        else: y_final = y_clean
-        x_final = x_clean
-        grid_config = config['preprocessing']['uv_grid']
-        output_col_name = 'log_epsilon'; x_col_name = 'wavelength'
-    else: raise ValueError("Tipe spektrum tidak valid")
+    if df.empty: return None
         
-    grid = np.linspace(grid_config['start'], grid_config['stop'], grid_config['num_points'])
+    df_sorted = df.groupby('x', as_index=False).mean().sort_values(by='x').reset_index(drop=True)
+    x_clean, y_clean = df_sorted['x'].values, df_sorted['y'].values
+
+    if spectrum_type == 'ir':
+        grid_config = config['preprocessing']['ir_grid']
+        grid = np.linspace(grid_config['stop'], grid_config['start'], grid_config['num_points'])
+        x_col_name, output_col_name = 'wavenumber', 'absorbance'
+        
+        y_units = metadata.get('yunits', '').lower()
+        if 'transmittance' in y_units or np.median(y_clean) > 1.1:
+            y_in_absorbance = 2 - np.log10(np.clip(y_clean, 1e-9, 100))
+        else:
+            y_in_absorbance = y_clean
+        
+        x_units = metadata.get('xunits', '').lower()
+        if 'micrometer' in x_units:
+            x_clean[x_clean == 0] = 1e-9
+            x_standard = 10000 / x_clean
+        else:
+            x_standard = x_clean
+            
+        if x_standard[0] > x_standard[-1]:
+            x_final, y_final = x_standard[::-1], y_in_absorbance[::-1]
+        else:
+            x_final, y_final = x_standard, y_in_absorbance
+    
+    # ... (logika untuk UV tidak berubah)
+    elif spectrum_type == 'uv':
+        grid_config = config['preprocessing']['uv_grid']
+        grid = np.linspace(grid_config['start'], grid_config['stop'], grid_config['num_points'])
+        x_col_name, output_col_name = 'wavelength', 'log_epsilon'
+        # ... (logika konversi unit UV)
+        y_final = y_clean # Disederhanakan, asumsikan sudah absorbans
+        x_final = x_clean
+
+    else:
+        raise ValueError("Tipe spektrum tidak valid")
+
     f = interp1d(x_final, y_final, bounds_error=False, fill_value=0.0)
     y_resampled = f(grid)
-    
-    # --- Smoothing standar untuk semua tipe data ---
-    if len(y_resampled) > 7: y_smoothed = savgol_filter(y_resampled, window_length=7, polyorder=2)
-    else: y_smoothed = y_resampled
-    
-    state = metadata.get('state', '').lower()
-    
-    # --- BLOK KOREKSI BASELINE DENGAN PENANGANAN KHUSUS UNTUK FASA GAS ---
-        # --- BLOK KOREKSI BASELINE (STABIL & ADAPTIF) ---
-    try:
-        y_for_baseline_calc = y_resampled.copy()
+    y_processed = np.clip(y_resampled, 0, None)
 
-        # cek seberapa cekung baseline dengan fitting polinomial orde 2
-        baseline_test = poly_baseline(grid, y_for_baseline_calc, order=2)
-        residual_var = np.var(y_for_baseline_calc - baseline_test)
-
-        if residual_var > 0.05:
-            # baseline cekung → pakai hybrid poly + ALS
-            baseline = hybrid_poly_als_baseline(grid, y_for_baseline_calc, poly_order=2)
-        else:
-            # baseline normal → cukup ALS modular
-            baseline = baseline_als(y_for_baseline_calc)
-
-        # kurangkan baseline
-        y_corrected = y_for_baseline_calc - baseline
-
-        # smoothing ringan
-        if len(y_corrected) > 7:
-            y_final_processed = savgol_filter(y_corrected, window_length=7, polyorder=2)
-        else:
-            y_final_processed = y_corrected
-
-        # clip ke nol
-        y_final_processed = np.clip(y_final_processed, 0, None)
-
-    except Exception:
-        y_final_processed = y_smoothed
-
-    
-    # --- Normalisasi (tidak berubah) ---
-    output_df = pd.DataFrame({x_col_name: grid})
     if normalize:
-        min_val, max_val = np.min(y_final_processed), np.max(y_final_processed)
-        if max_val > min_val: y_out = (y_final_processed - min_val) / (max_val - min_val)
-        else: y_out = y_final_processed
-    else: y_out = y_final_processed
+        max_val = np.max(y_processed)
+        if max_val > 0: y_out = y_processed / max_val
+        else: y_out = y_processed
+    else:
+        y_out = y_processed
     
-    output_df[output_col_name] = y_out
-    return output_df
+    return pd.DataFrame({x_col_name: grid, output_col_name: y_out})
+
+
 # -------------------------------
 # Metadata feature
 # -------------------------------
 def extract_metadata_feature(metadata):
-    state = metadata.get('state', 'unknown').lower()
-    if 'solid' in state:
-        phase = 'solid'
-    elif 'gas' in state:
-        phase = 'gas'
-    elif 'liquid' in state:
-        phase = 'liquid'
-    elif 'solution' in state:
-        phase = 'solution'
-    else:
-        phase = 'unknown'
-    return [phase]
+    """
+    Ambil metadata umum (tanpa mempertimbangkan fase fisik)
+    agar hasil spektrum tidak bias oleh keadaan padatan/cair/gas.
+    """
+    keys = ['instrument', 'operator', 'date', 'title', 'source']
+    features = []
+    for k in keys:
+        val = metadata.get(k, '').strip().lower()
+        features.append(val if val else 'unknown')
+    return features
+
 
 # -------------------------------
 # Dataset IR
