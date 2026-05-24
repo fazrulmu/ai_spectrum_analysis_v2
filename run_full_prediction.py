@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 # --- Menambahkan 'src' ke path agar semua impor absolut berfungsi ---
+# Ini adalah langkah kunci untuk mengatasi semua ModuleNotFoundError
 SRC_PATH = Path(__file__).parent / 'src'
 if str(SRC_PATH) not in sys.path:
     sys.path.insert(0, str(SRC_PATH))

@@ -1,0 +1,164 @@
+[
+    {
+        "group": "alkene_isolated",
+        "range": [
+            170,
+            195
+        ],
+        "comment": "Transisi \u03c0 -> \u03c0* pada C=C terisolasi.",
+        "required_atoms": [
+            "C"
+        ]
+    },
+    {
+        "group": "carbonyl_pi_pi_star",
+        "range": [
+            180,
+            195
+        ],
+        "comment": "Transisi \u03c0 -> \u03c0* yang kuat pada C=O.",
+        "required_atoms": [
+            "C",
+            "O"
+        ]
+    },
+    {
+        "group": "carbonyl_n_pi_star",
+        "range": [
+            270,
+            300
+        ],
+        "comment": "Transisi n -> \u03c0* yang lemah pada C=O.",
+        "required_atoms": [
+            "C",
+            "O"
+        ],
+        "min_prominence": 0.0276,
+        "min_log_epsilon": 1.4585
+    },
+    {
+        "group": "diene_conjugated_acyclic",
+        "range": [
+            215,
+            230
+        ],
+        "comment": "Transisi \u03c0 -> \u03c0* untuk diena terkonjugasi.",
+        "required_atoms": [
+            "C"
+        ],
+        "min_prominence": 0.0577,
+        "min_log_epsilon": 2.0012
+    },
+    {
+        "group": "diene_conjugated_cyclic",
+        "range": [
+            250,
+            270
+        ],
+        "comment": "Diena terkonjugasi dalam cincin.",
+        "required_atoms": [
+            "C"
+        ],
+        "min_prominence": 0.0162,
+        "min_log_epsilon": 2.0347
+    },
+    {
+        "group": "enone_pi_pi_star",
+        "range": [
+            210,
+            250
+        ],
+        "comment": "Transisi \u03c0 -> \u03c0* (pita K) yang kuat pada enon (C=C-C=O).",
+        "required_atoms": [
+            "C",
+            "O"
+        ],
+        "min_prominence": 0.0271,
+        "min_log_epsilon": 2.0068
+    },
+    {
+        "group": "enone_n_pi_star",
+        "range": [
+            310,
+            330
+        ],
+        "comment": "Transisi n -> \u03c0* (pita R) yang lemah, bergeser ke \u03bb lebih panjang.",
+        "required_atoms": [
+            "C",
+            "O"
+        ],
+        "min_prominence": 0.0229,
+        "min_log_epsilon": 1.4319
+    },
+    {
+        "group": "benzene_primary_E2_band",
+        "range": [
+            200,
+            210
+        ],
+        "comment": "Pita E2 primer benzena.",
+        "required_atoms": [
+            "C"
+        ],
+        "min_prominence": 0.0219,
+        "min_log_epsilon": 2.2765
+    },
+    {
+        "group": "benzene_secondary_B_band",
+        "range": [
+            250,
+            270
+        ],
+        "comment": "Pita B sekunder benzena (struktur halus).",
+        "required_atoms": [
+            "C"
+        ]
+    },
+    {
+        "group": "phenol_or_aniline",
+        "range": [
+            270,
+            285
+        ],
+        "comment": "Gugus -OH atau -NH2 menggeser pita B.",
+        "required_atoms": [
+            "C"
+        ]
+    },
+    {
+        "group": "styrene_conjugated_aromatic",
+        "range": [
+            245,
+            260
+        ],
+        "comment": "Konjugasi cincin benzena dengan C=C.",
+        "required_atoms": [
+            "C"
+        ]
+    },
+    {
+        "group": "benzaldehyde_conjugated_aromatic",
+        "range": [
+            240,
+            255
+        ],
+        "comment": "Konjugasi cincin benzena dengan C=O.",
+        "required_atoms": [
+            "C",
+            "O"
+        ]
+    },
+    {
+        "group": "naphthalene_polycyclic_aromatic",
+        "range": [
+            300,
+            320
+        ],
+        "comment": "Sistem polisiklik aromatik seperti naftalena.",
+        "required_atoms": [
+            "C"
+        ],
+        "min_prominence": 0.0242,
+        "min_log_epsilon": 1.1515
+    }
+]

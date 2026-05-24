@@ -1,0 +1,195 @@
+{
+    "schema_version": "3.0",
+    "author": "AI Spectrum Analysis (Numerical Scoring Engine)",
+    "description": "Numerical scoring ruleset for IR spectrum analysis to generate confidence scores.",
+    "scoring_parameters": {
+        "intensity_map": {
+            "Strong": [
+                0.7,
+                1.0
+            ],
+            "Medium": [
+                0.3,
+                0.7
+            ],
+            "Weak": [
+                0.05,
+                0.3
+            ]
+        },
+        "shape_map_fwhm": {
+            "Sharp": [
+                5,
+                40
+            ],
+            "Broad": [
+                100,
+                400
+            ],
+            "Very Broad": [
+                400,
+                1000
+            ]
+        }
+    },
+    "scoreable_hypotheses": {
+        "functional_groups": [
+            {
+                "group_name": "Carboxylic Acid",
+                "required_peaks": [
+                    {
+                        "peak_id": "CA_OH_STRETCH",
+                        "wavenumber_center": 2900,
+                        "wavenumber_tolerance": 400,
+                        "expected_intensity_range": [
+                            0.3,
+                            0.8
+                        ],
+                        "expected_fwhm_range_cm_inv": [
+                            400,
+                            1000
+                        ],
+                        "peak_weight": 0.6
+                    },
+                    {
+                        "peak_id": "CA_CO_STRETCH",
+                        "wavenumber_center": 1700,
+                        "wavenumber_tolerance": 20,
+                        "expected_intensity_range": [
+                            0.8,
+                            1.0
+                        ],
+                        "expected_fwhm_range_cm_inv": [
+                            20,
+                            50
+                        ],
+                        "peak_weight": 0.4
+                    }
+                ]
+            },
+            {
+                "group_name": "Ester",
+                "required_peaks": [
+                    {
+                        "peak_id": "ESTER_CO_STRETCH",
+                        "wavenumber_center": 1745,
+                        "wavenumber_tolerance": 15,
+                        "expected_intensity_range": [
+                            0.8,
+                            1.0
+                        ],
+                        "expected_fwhm_range_cm_inv": [
+                            15,
+                            35
+                        ],
+                        "peak_weight": 0.7
+                    },
+                    {
+                        "peak_id": "ESTER_C_O_STRETCH",
+                        "wavenumber_center": 1240,
+                        "wavenumber_tolerance": 90,
+                        "expected_intensity_range": [
+                            0.6,
+                            1.0
+                        ],
+                        "expected_fwhm_range_cm_inv": [
+                            30,
+                            80
+                        ],
+                        "peak_weight": 0.3
+                    }
+                ]
+            }
+        ],
+        "aromatic_substitutions": [
+            {
+                "pattern_name": "Ortho (1,2)",
+                "required_peaks": [
+                    {
+                        "peak_id": "ORTHO_OOP_BEND",
+                        "wavenumber_center": 755,
+                        "wavenumber_tolerance": 20,
+                        "expected_intensity_range": [
+                            0.6,
+                            1.0
+                        ],
+                        "expected_fwhm_range_cm_inv": [
+                            10,
+                            30
+                        ],
+                        "peak_weight": 1.0
+                    }
+                ]
+            },
+            {
+                "pattern_name": "Para (1,4)",
+                "required_peaks": [
+                    {
+                        "peak_id": "PARA_OOP_BEND",
+                        "wavenumber_center": 830,
+                        "wavenumber_tolerance": 30,
+                        "expected_intensity_range": [
+                            0.7,
+                            1.0
+                        ],
+                        "expected_fwhm_range_cm_inv": [
+                            10,
+                            40
+                        ],
+                        "peak_weight": 1.0
+                    }
+                ]
+            }
+        ]
+    },
+    "cross_validation_modifiers": [
+        {
+            "modifier_id": "PENALIZE_ORTHO_IF_PARA_PEAK_EXISTS",
+            "description": "If a strong peak exists in the Para region, it's highly unlikely to be Ortho.",
+            "target_hypothesis": "Ortho (1,2)",
+            "condition": {
+                "if_peak_exists": {
+                    "wavenumber_range": [
+                        800,
+                        860
+                    ],
+                    "min_intensity": 0.5
+                }
+            },
+            "action": {
+                "multiply_score_by": 0.05
+            }
+        },
+        {
+            "modifier_id": "PENALIZE_PARA_IF_ORTHO_PEAK_EXISTS",
+            "description": "If a strong peak exists in the Ortho region, it's highly unlikely to be Para.",
+            "target_hypothesis": "Para (1,4)",
+            "condition": {
+                "if_peak_exists": {
+                    "wavenumber_range": [
+                        735,
+                        775
+                    ],
+                    "min_intensity": 0.5
+                }
+            },
+            "action": {
+                "multiply_score_by": 0.05
+            }
+        },
+        {
+            "modifier_id": "BOOST_ESTER_IF_AROMATIC",
+            "description": "Aromatic esters often have slightly shifted and stronger C-O bands.",
+            "target_hypothesis": "Ester",
+            "condition": {
+                "if_hypothesis_score_above": {
+                    "hypothesis_name": "Aromatic Ring",
+                    "score_threshold": 0.7
+                }
+            },
+            "action": {
+                "multiply_score_by": 1.1
+            }
+        }
+    ]
+}

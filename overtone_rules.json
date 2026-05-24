@@ -1,0 +1,22 @@
+[
+    {
+        "pattern": "Likely Monosubstituted (based on complex overtone)",
+        "num_peaks_min": 4,
+        "num_peaks_max": 10
+    },
+    {
+        "pattern": "Likely Ortho- or 1,2,3-Trisubstituted (based on overtone)",
+        "num_peaks_min": 3,
+        "num_peaks_max": 3
+    },
+    {
+        "pattern": "Likely Meta- or 1,2,4-Trisubstituted (based on overtone)",
+        "num_peaks_min": 2,
+        "num_peaks_max": 2
+    },
+    {
+        "pattern": "Likely Para-disubstituted (based on simple overtone)",
+        "num_peaks_min": 1,
+        "num_peaks_max": 1
+    }
+]

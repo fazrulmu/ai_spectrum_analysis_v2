@@ -1,0 +1,18 @@
+{
+  "Ester": {
+    "smarts": "[CX3](=O)[OX2H0][#6]",
+    "peaks": {}
+  },
+  "Carboxylic Acid": {
+    "smarts": "C(=O)[O;H1]",
+    "peaks": {}
+  },
+  "Alkene": {
+    "smarts": "[#6]=[#6]",
+    "peaks": {}
+  },
+  "Ketone": {
+    "smarts": "[#6][CX3](=O)[#6]",
+    "peaks": {}
+  }
+}

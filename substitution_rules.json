@@ -1,0 +1,49 @@
+[
+    {
+        "pattern": "Monosubstituted",
+        "ranges": [
+            [770, 730],
+            [710, 690]
+        ]
+    },
+    {
+        "pattern": "Ortho-disubstituted (1,2)",
+        "ranges": [
+            [770, 735]
+        ]
+    },
+    {
+        "pattern": "Meta-disubstituted (1,3)",
+        "ranges": [
+            [810, 750],
+            [710, 690]
+        ]
+    },
+    {
+        "pattern": "Para-disubstituted (1,4)",
+        "ranges": [
+            [860, 800]
+        ]
+    },
+    {
+        "pattern": "1,2,3-Trisubstituted",
+        "ranges": [
+            [780, 760],
+            [745, 705]
+        ]
+    },
+    {
+        "pattern": "1,2,4-Trisubstituted",
+        "ranges": [
+            [825, 805],
+            [885, 870]
+        ]
+    },
+    {
+        "pattern": "1,3,5-Trisubstituted",
+        "ranges": [
+            [865, 810],
+            [730, 675]
+        ]
+    }
+]

@@ -1,6 +1,5 @@
 # Python bytecode
-__pycache__/
-*.pyc
+
 
 # Folder data (opsional, jika data sangat besar)
 # data/raw/
@@ -17,5 +16,14 @@ venv/
 # File spesifik OS
 .DS_Store
 Thumbs.db
+.vscode
+
+
+todo.md
+uv_rules.json
+
+.conda_env
+.venv
 data
-notebook_jupyter
+__pycache__/
+models

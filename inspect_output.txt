@@ -1,0 +1,12 @@
+y_ir shape: (1782, 5)
+
+Unique values per column:
+cas_number: 430
+spectrum_type: 1
+state: 6
+matrix_sample: 16
+abs_matrix: 53
+
+y_ir_encoded shape: (1782, 508)
+Sum of first row: 5.0
+Max of first row: 1.0

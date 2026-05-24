@@ -1,0 +1,509 @@
+[
+    {
+        "group": "alkene_ch_sp2",
+        "range": [
+            3010,
+            3100
+        ],
+        "vibration_type": "sp\u00b2 C-H stretch",
+        "required_atoms": [
+            "C",
+            "H"
+        ],
+        "min_prominence": 0.0293,
+        "min_height": 0.0596,
+        "min_width": 1.04,
+        "max_width": 10.86
+    },
+    {
+        "group": "alkane_ch_sp3",
+        "range": [
+            2850,
+            2960
+        ],
+        "vibration_type": "sp\u00b3 C-H stretch",
+        "required_atoms": [
+            "C",
+            "H"
+        ],
+        "min_prominence": 0.0251,
+        "min_height": 0.1128,
+        "min_width": 1.25,
+        "max_width": 17.5
+    },
+    {
+        "group": "carboxylic_acid_co",
+        "range": [
+            1700,
+            1725
+        ],
+        "vibration_type": "C=O stretch",
+        "required_atoms": [
+            "C",
+            "O"
+        ],
+        "min_prominence": 0.03,
+        "min_height": 0.0694,
+        "min_width": 1.66,
+        "max_width": 435.61
+    },
+    {
+        "group": "aromatic_cc",
+        "range": [
+            1450,
+            1600
+        ],
+        "vibration_type": "Aromatic C=C ring stretch",
+        "required_atoms": [
+            "C"
+        ],
+        "min_prominence": 0.0263,
+        "min_height": 0.0733,
+        "min_width": 1.01,
+        "max_width": 7.87
+    },
+    {
+        "group": "amide_cn",
+        "range": [
+            1180,
+            1360
+        ],
+        "vibration_type": "C-N stretch",
+        "required_atoms": [
+            "C",
+            "N"
+        ],
+        "min_prominence": 0.028,
+        "min_height": 0.0635,
+        "min_width": 1.17,
+        "max_width": 8.08
+    },
+    {
+        "group": "ester_co_c",
+        "range": [
+            1150,
+            1250
+        ],
+        "vibration_type": "C-O stretch (ester)",
+        "required_atoms": [
+            "C",
+            "O"
+        ],
+        "min_prominence": 0.0247,
+        "min_height": 0.0879,
+        "min_width": 1.33,
+        "max_width": 9.24
+    },
+    {
+        "group": "ether_co",
+        "range": [
+            1050,
+            1150
+        ],
+        "vibration_type": "C-O stretch",
+        "required_atoms": [
+            "C",
+            "O"
+        ],
+        "min_prominence": 0.0279,
+        "min_height": 0.0665,
+        "min_width": 1.39,
+        "max_width": 9.54
+    },
+    {
+        "group": "benzene_ring_breathing",
+        "range": [
+            1000,
+            1075
+        ],
+        "vibration_type": "Benzene ring mode",
+        "required_atoms": [
+            "C",
+            "H"
+        ],
+        "min_prominence": 0.025,
+        "min_height": 0.0659,
+        "min_width": 1.05,
+        "max_width": 7.52
+    },
+    {
+        "group": "alkene_out_of_plane_ch",
+        "range": [
+            900,
+            990
+        ],
+        "vibration_type": "Alkene C-H bend (out-of-plane)",
+        "required_atoms": [
+            "C",
+            "H"
+        ],
+        "min_prominence": 0.0254,
+        "min_height": 0.0359,
+        "min_width": 1.08,
+        "max_width": 8.21
+    },
+    {
+        "group": "alkyl_halide_ccl",
+        "range": [
+            600,
+            800
+        ],
+        "vibration_type": "C-Cl stretch",
+        "required_atoms": [
+            "C",
+            "Cl"
+        ],
+        "min_prominence": 0.0279,
+        "min_height": 0.0755,
+        "min_width": 1.18,
+        "max_width": 9.15
+    },
+    {
+        "group": "alkyl_halide_cbr",
+        "range": [
+            500,
+            650
+        ],
+        "vibration_type": "C-Br stretch",
+        "required_atoms": [
+            "Br",
+            "C"
+        ],
+        "min_prominence": 0.024,
+        "min_height": 0.036,
+        "min_width": 1.05,
+        "max_width": 11.05
+    },
+    {
+        "group": "alkyl_halide_cI",
+        "range": [
+            450,
+            600
+        ],
+        "vibration_type": "C-I stretch",
+        "required_atoms": [
+            "C",
+            "I"
+        ],
+        "min_prominence": 0.0234,
+        "min_height": 0.0426,
+        "min_width": 1.22,
+        "max_width": 8.28
+    },
+    {
+        "group": "amide_co",
+        "range": [
+            1640,
+            1690
+        ],
+        "vibration_type": "C=O stretch (amide I band)",
+        "required_atoms": [
+            "C",
+            "N",
+            "O"
+        ],
+        "min_prominence": 0.0218,
+        "min_height": 0.0447,
+        "min_width": 1.43,
+        "max_width": 8.21
+    },
+    {
+        "group": "carboxylic_acid_oh_broad",
+        "range": [
+            2500,
+            3300
+        ],
+        "vibration_type": "O-H stretch (very broad)",
+        "required_atoms": [
+            "C",
+            "H",
+            "O"
+        ],
+        "min_prominence": 0.0261,
+        "min_height": 0.0481,
+        "min_width": 1.11,
+        "max_width": 19.07
+    },
+    {
+        "group": "anhydride_co",
+        "range": [
+            1740,
+            1850
+        ],
+        "vibration_type": "C=O stretch (anhydride, 2 bands)",
+        "required_atoms": [
+            "C",
+            "O"
+        ],
+        "min_prominence": 0.0238,
+        "min_height": 0.0288,
+        "min_width": 1.54,
+        "max_width": 7.34
+    },
+    {
+        "group": "aldehyde_co",
+        "range": [
+            1720,
+            1740
+        ],
+        "vibration_type": "C=O stretch",
+        "required_atoms": [
+            "C",
+            "H",
+            "O"
+        ],
+        "min_prominence": 0.0951,
+        "min_height": 0.5731,
+        "min_width": 0.71,
+        "max_width": 274.93
+    },
+    {
+        "group": "aromatic_out_of_plane_ch",
+        "range": [
+            690,
+            900
+        ],
+        "vibration_type": "Aromatic C-H bend (out-of-plane)",
+        "required_atoms": [
+            "C",
+            "H"
+        ],
+        "min_prominence": 0.0234,
+        "min_height": 0.0515,
+        "min_width": 1.07,
+        "max_width": 6.87
+    },
+    {
+        "group": "alkyne_cc",
+        "range": [
+            2100,
+            2260
+        ],
+        "vibration_type": "C\u2261C stretch",
+        "required_atoms": [
+            "C"
+        ],
+        "min_prominence": 0.0237,
+        "min_height": 0.0242,
+        "min_width": 1.29,
+        "max_width": 41.56
+    },
+    {
+        "group": "alkene_cc",
+        "range": [
+            1620,
+            1680
+        ],
+        "vibration_type": "C=C stretch",
+        "required_atoms": [
+            "C"
+        ],
+        "min_prominence": 0.0431,
+        "min_height": 0.0758,
+        "min_width": 1.78,
+        "max_width": 7.29
+    },
+    {
+        "group": "alcohol_phenol_oh",
+        "range": [
+            3200,
+            3600
+        ],
+        "vibration_type": "O-H stretch (broad)",
+        "required_atoms": [
+            "H",
+            "O"
+        ],
+        "min_prominence": 0.0217,
+        "min_height": 0.0222,
+        "min_width": 2.98,
+        "max_width": 41.69
+    },
+    {
+        "group": "amine_nh_secondary",
+        "range": [
+            3300,
+            3500
+        ],
+        "vibration_type": "N-H stretch (1 peak)",
+        "required_atoms": [
+            "H",
+            "N"
+        ]
+    },
+    {
+        "group": "nitro_no2_sym",
+        "range": [
+            1300,
+            1370
+        ],
+        "vibration_type": "Symmetric N-O stretch",
+        "required_atoms": [
+            "N",
+            "O"
+        ],
+        "min_prominence": 0.0325,
+        "min_height": 0.1251,
+        "min_width": 1.32,
+        "max_width": 6.11
+    },
+    {
+        "group": "thiol_sh",
+        "range": [
+            2550,
+            2700
+        ],
+        "vibration_type": "S-H stretch, weak",
+        "required_atoms": [
+            "H",
+            "S"
+        ]
+    },
+    {
+        "group": "nitrile_cn",
+        "range": [
+            2210,
+            2260
+        ],
+        "vibration_type": "C\u2261N stretch",
+        "required_atoms": [
+            "C",
+            "N"
+        ]
+    },
+    {
+        "group": "ketone_co",
+        "range": [
+            1705,
+            1725
+        ],
+        "vibration_type": "C=O stretch",
+        "required_atoms": [
+            "C",
+            "O"
+        ]
+    },
+    {
+        "group": "ester_co",
+        "range": [
+            1735,
+            1750
+        ],
+        "vibration_type": "C=O stretch",
+        "required_atoms": [
+            "C",
+            "O"
+        ]
+    },
+    {
+        "group": "amine_cn",
+        "range": [
+            1020,
+            1230
+        ],
+        "vibration_type": "C-N stretch",
+        "required_atoms": [
+            "C",
+            "N"
+        ]
+    },
+    {
+        "group": "alkyne_ch_sp",
+        "range": [
+            3300,
+            3320
+        ],
+        "vibration_type": "sp C-H stretch, sharp",
+        "required_atoms": [
+            "C",
+            "H"
+        ]
+    },
+    {
+        "group": "isocyanate_nco",
+        "range": [
+            2250,
+            2270
+        ],
+        "vibration_type": "N=C=O asymmetric stretch",
+        "required_atoms": [
+            "C",
+            "N",
+            "O"
+        ]
+    },
+    {
+        "group": "aromatic_ch",
+        "range": [
+            3000,
+            3100
+        ],
+        "vibration_type": "Aromatic C-H stretch",
+        "required_atoms": [
+            "C",
+            "H"
+        ]
+    },
+    {
+        "group": "amine_nh_primary",
+        "range": [
+            3300,
+            3500
+        ],
+        "vibration_type": "N-H stretch (primary, 2 bands)",
+        "required_atoms": [
+            "H",
+            "N"
+        ]
+    },
+    {
+        "group": "amide_nh",
+        "range": [
+            3100,
+            3500
+        ],
+        "vibration_type": "N-H stretch",
+        "required_atoms": [
+            "C",
+            "H",
+            "N",
+            "O"
+        ]
+    },
+    {
+        "group": "sulfone_so2",
+        "range": [
+            1300,
+            1350
+        ],
+        "vibration_type": "S=O stretch",
+        "required_atoms": [
+            "O",
+            "S"
+        ]
+    },
+    {
+        "group": "sulfate_so4",
+        "range": [
+            1050,
+            1150
+        ],
+        "vibration_type": "S=O stretch",
+        "required_atoms": [
+            "O",
+            "S"
+        ]
+    },
+    {
+        "group": "nitro_no2_asym",
+        "range": [
+            1500,
+            1570
+        ],
+        "vibration_type": "Asymmetric N-O stretch",
+        "required_atoms": [
+            "N",
+            "O"
+        ]
+    }
+]

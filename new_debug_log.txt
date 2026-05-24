@@ -1,0 +1,64 @@
+🚀 Running prediction with Chemoinformatics Environment...
+llama_context: n_ctx_per_seq (2048) < n_ctx_train (32768) -- the full capacity of the model will not be utilized
+🔄 Loading models and resources...
+🤖 Loading LLM from saved_models/llm/qwen2.5-0.5b-instruct-q4_k_m.gguf...
+✅ LLM Loaded.
+✅ All models loaded successfully.
+
+🔍 Analyzing: data/samples_to_predict/100-42-5_IR_GAS_(6_mmHg,_N2_ADD,_TOTAL_PRESSURE_600_mmHg)_1.jdx
+ℹ️  Detected Spectrum Type: IR
+📝 Metadata Highlight: State='GAS (6 mmHg, N2 ADD, TOTAL PRESSURE 600 mmHg)', Matrix='Unknown'
+📊 Global Candidates: 31 groups found > 0.3
+   - Alkane (C-H Stretch): Global 0.48 | Local 0.71 -> ✅ Verified (0.64)
+   - Alkane (C-H): Global 0.70 | Local 0.37 -> ❌ Rejected (Final 0.47)
+   - Alkane (Isopropyl doublet): Global 0.30 | Local 0.57 -> ❌ Rejected (Final 0.49)
+   - Ar: Global 0.79 | Local 0.54 -> ✅ Verified (0.61)
+   - Ar (C-H Bending, 1,3,5-trisubst): Global 0.64 | Local 0.15 -> ❌ Rejected (Low Local Score)
+   - Ar (C-H Bending, Mono-subst 2): Global 0.35 | Local 0.81 -> ✅ Verified (0.67)
+   - Ar (C-H Bending, Mono-subst): Global 0.46 | Local 0.21 -> ❌ Rejected (Low Local Score)
+   - Ar (C-H Bending, PAH 2): Global 0.50 | Local 0.28 -> ❌ Rejected (Final 0.35)
+   - Ar (C-H Bending, PAH): Global 0.59 | Local 0.79 -> ✅ Verified (0.73)
+   - Ar (C-H Stretch): Global 0.40 | Local 0.77 -> ✅ Verified (0.66)
+   - Ar (C=C Ring Stretch): Global 0.41 | Local 0.47 -> ❌ Rejected (Final 0.45)
+   - Ar-NH2: Global 0.60 | Local 0.70 -> ✅ Verified (0.67)
+   - Ar-O-R: Global 0.67 | Local 0.34 -> ❌ Rejected (Final 0.44)
+   - Ar-OH: Global 0.77 | Local 0.86 -> ✅ Verified (0.83)
+   - Ar-X: Global 0.53 | Local 0.43 -> ❌ Rejected (Final 0.46)
+   - R-CHO: Global 0.63 | Local 0.63 -> ✅ Verified (0.63)
+   - R-CO-O-CO-R: Global 0.72 | Local 0.46 -> ✅ Verified (0.54)
+   - R-CO-R: Global 0.56 | Local 0.51 -> ✅ Verified (0.52)
+   - R-CONH₂: Global 0.75 | Local 0.47 -> ✅ Verified (0.55)
+   - R-COOH: Global 0.81 | Local 0.67 -> ✅ Verified (0.71)
+   - R-COOR: Global 0.51 | Local 0.51 -> ✅ Verified (0.51)
+   - R-C≡N: Global 0.43 | Local 0.58 -> ✅ Verified (0.54)
+   - R-F: Global 0.45 | Local 0.34 -> ❌ Rejected (Final 0.37)
+   - R-I: Global 0.40 | Local 0.52 -> ❌ Rejected (Final 0.49)
+   - R-NH2: Global 0.63 | Local 0.49 -> ✅ Verified (0.53)
+   - R-OH: Global 0.75 | Local 0.76 -> ✅ Verified (0.76)
+   - R-SH: Global 0.51 | Local 0.71 -> ✅ Verified (0.65)
+   - R2-NH: Global 0.63 | Local 0.55 -> ✅ Verified (0.57)
+   - Vinyl (C-H Bending): Global 0.55 | Local 0.76 -> ✅ Verified (0.70)
+   - Vinyl (C=C Stretch): Global 0.49 | Local 0.54 -> ✅ Verified (0.53)
+🎯 Final Result: ['Alkane (C-H Stretch)', 'Ar', 'Ar (C-H Bending, Mono-subst 2)', 'Ar (C-H Bending, PAH)', 'Ar (C-H Stretch)', 'Ar-NH2', 'Ar-OH', 'R-CHO', 'R-CO-O-CO-R', 'R-CO-R', 'R-CONH₂', 'R-COOH', 'R-COOR', 'R-C≡N', 'R-NH2', 'R-OH', 'R-SH', 'R2-NH', 'R3-N', 'Vinyl (C-H Bending)', 'Vinyl (C=C Stretch)']
+
+🔍 Performing Spectral Search (CAS Identification)...
+🏆 Top 5 CAS Matches (IR):
+   1. CAS: 100-42-5 | Score: 1.0000 | SMILES: C=CC1=CC=CC=C1
+   2. CAS: 100-42-5 | Score: 0.9884 | SMILES: C=CC1=CC=CC=C1
+   3. CAS: 108-46-3 | Score: 0.8518 | SMILES: C1=CC(=CC(=C1)O)O
+   4. CAS: 592-41-6 | Score: 0.8457 | SMILES: CCCCC=C
+   5. CAS: 108-90-7 | Score: 0.8215 | SMILES: C1=CC=C(C=C1)Cl
+
+🤖 Running LLM Analysis...
+{
+  "compound_name": "100-42-5",
+  "confidence": "High",
+  "reasoning": "The compound has a high score and multiple functional groups, including alkane, ar, ar, ar, and ar. The UV peaks are not provided.",
+  "functional_groups_analysis": [
+    "alkane (C-H Stretch)",
+    "ar (C-H Bending)",
+    "ar (C-H Bending)",
+    "ar (C-H Stretch)"
+  ],
+  "uv_analysis": "The compound has a high UV sensitivity."
+}

@@ -1,0 +1,2 @@
+Python 3.14.0
+pip 25.3 from /var/home/fazdev/Desktop/ai_spectrum_analysis_v2/.venv/lib64/python3.14/site-packages/pip (python 3.14)

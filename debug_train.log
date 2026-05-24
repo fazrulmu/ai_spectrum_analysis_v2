@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/var/home/fazdev/Desktop/ai_spectrum_analysis_v2/train_multimodal.py", line 1, in <module>
+    import pandas as pd
+ModuleNotFoundError: No module named 'pandas'
